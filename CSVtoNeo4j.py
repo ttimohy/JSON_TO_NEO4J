@@ -6,7 +6,6 @@ agency_writer = csv.writer(open('nodes/agency.csv','w',newline=''))
 PI_writer = csv.writer(open('nodes/PI.csv','w',newline=''))
 POC_writer = csv.writer(open('nodes/POC.csv','w',newline=''))
 research_institution_writer = csv.writer(open('nodes/research_institution.csv','w',newline=''))
-RI_contact_writer = csv.writer(open('nodes/RI_contact.csv','w',newline=''))
 
 contact_for_writer = csv.writer(open('relationships/contact_for.csv','w',newline=''))
 contact_for_RI_writer = csv.writer(open('relationships/contact_for_RI.csv','w',newline=''))
@@ -90,30 +89,23 @@ def add_RI(row):
     RI_name = row[33]
     if RI_name == '':
         return -1
-    if RI_name not in added_RIs:
-        newRow = [num_RI, RI_name]
-        research_institution_writer.writerow(newRow)
-        added_RIs.append(RI_name)
-        num_RI += 1
-        return num_RI - 1
-    return added_RIs.index(RI_name)
-
-added_RI_contacts = []
-num_RI_contact = 0
-def add_RI_contact(row):
-    global num_RI_contact
-    global added_RI_contacts
     RI_contact_name = row[34]
     RI_contact_phone = row[35]
     if RI_contact_name == '':
-        return -1
-    if RI_contact_name+RI_contact_phone not in added_RI_contacts:
-        newRow = [num_RI_contact, RI_contact_name, RI_contact_phone]
+        if RI_name not in added_RIs:
+            newRow = [num_RI, RI_name]
+            research_institution_writer.writerow(newRow)
+            added_RIs.append(RI_name)
+            num_RI += 1
+            return num_RI - 1
+        return added_RI.index(RI_name)
+    else if RI_name+RI_contact_name+RI_contact_phone not in added_RI_contacts:
+        newRow = [num_RI, RI_name, RI_contact_name, RI_contact_phone]
         RI_contact_writer.writerow(newRow)
-        added_RI_contacts.append(RI_contact_name+RI_contact_phone)
-        num_RI_contact += 1
-        return num_RI_contact - 1
-    return added_RI_contacts.index(RI_contact_name+RI_contact_phone)
+        added_RI_contacts.append(RI_name+RI_contact_name+RI_contact_phone)
+        num_RI += 1
+        return num_RI - 1
+    return added_RI.index(RI_name+RI_contact_name+RI_contact_phone)
 
 def addRelationships(companyID, awardID, agencyID, pocID, piID, riID, ripocID):
     funded_writer.writerow([agencyID, awardID])
