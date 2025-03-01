@@ -162,9 +162,9 @@ if __name__ == "__main__":
         companyID = add_company(row)
         awardID = add_award(row)
         agencyID = add_agency(row)
+        programID = add_program(row)
         pocID = add_POC(row)
         piID = add_PI(row)
-        riID = add_RI(row)
-        ripocID = add_RI_contact(row)
-        addRelationships(companyID, awardID, agencyID, pocID, piID, riID, ripocID)
+        projectID = add_project(row)
+        addRelationships(companyID, awardID, agencyID, programID, pocID, piID, riID, projectID)
 
