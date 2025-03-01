@@ -78,10 +78,12 @@ num_POC = 0
 def add_POC(row):
     global num_POC
     global added_POCs
-    POC_name = row[25]
-    POC_number = row[27]
+    POC_name = row[26]
+    if POC_name = '':
+        return -1
+    POC_number = row[28]
     if POC_name+POC_number not in added_POCs:
-        newRow = [num_POC, POC_name, *row[26:29]]
+        newRow = [num_POC, POC_name, POC_number, row[27], row[29]]
         POC_writer.writerow(newRow)
         added_POCs.append(POC_name+POC_number)
         num_POC += 1
@@ -93,10 +95,10 @@ num_PI = 0
 def add_PI(row):
     global num_PI
     global added_PIs
-    PI_name = row[29]
-    PI_phone = row[31]
+    PI_name = row[30]
+    PI_phone = row[32]
     if PI_name+PI_phone not in added_PIs:
-        newRow = [num_PI, PI_name, *row[30:33]]
+        newRow = [num_PI, PI_name, PI_phone, row[31], row[34]]
         PI_writer.writerow(newRow)
         added_PIs.append(PI_name+PI_phone)
         num_PI += 1
@@ -108,11 +110,11 @@ num_RI = 0
 def add_RI(row):
     global num_RI
     global added_RIs
-    RI_name = row[33]
+    RI_name = row[34]
     if RI_name == '':
         return -1
-    RI_contact_name = row[34]
-    RI_contact_phone = row[35]
+    RI_contact_name = row[35]
+    RI_contact_phone = row[36]
     if RI_contact_name == '':
         if RI_name not in added_RIs:
             newRow = [num_RI, RI_name]
