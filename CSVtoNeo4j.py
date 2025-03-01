@@ -6,7 +6,7 @@ agency_writer = csv.writer(open('nodes/agency.csv','w',newline=''))
 program_writer = csv.writer(open('nodes/program.csv','w',newline=''))
 PI_writer = csv.writer(open('nodes/PI.csv','w',newline=''))
 POC_writer = csv.writer(open('nodes/POC.csv','w',newline=''))
-research_institution_writer = csv.writer(open('nodes/research_institution.csv','w',newline=''))
+project_writer = csv.writer(open('nodes/project.csv','w',newline=''))
 
 contact_for_writer = csv.writer(open('relationships/contact_for.csv','w',newline=''))
 contact_for_RI_writer = csv.writer(open('relationships/contact_for_RI.csv','w',newline=''))
@@ -118,10 +118,30 @@ def add_RI(row):
     else if RI_name+RI_contact_name+RI_contact_phone not in added_RI_contacts:
         newRow = [num_RI, RI_name, RI_contact_name, RI_contact_phone]
         RI_contact_writer.writerow(newRow)
-        added_RI_contacts.append(RI_name+RI_contact_name+RI_contact_phone)
+        added_RIs.append(RI_name+RI_contact_name+RI_contact_phone)
         num_RI += 1
         return num_RI - 1
     return added_RI.index(RI_name+RI_contact_name+RI_contact_phone)
+
+added_projects = []
+num_project = 0
+def add_project(row):
+    global num_project
+    global added_projects
+    award_title = row[2]
+    if award_title = '':
+        return -1
+    abstract = row[25]
+    if abstract = 'N/A':
+        return -1
+    research_area_keywords = row[24]
+    if award_title not in added_projects:
+        newRow = [num_project, award_title, abstract, research_area_keywords]
+        project_writer.writerow(newRow)
+        added_projects.append(award_title)
+        num_project += 1
+        return num_project - 1
+    return addded_projects.index(award_title)
 
 def addRelationships(companyID, awardID, agencyID, pocID, piID, riID, ripocID):
     funded_writer.writerow([agencyID, awardID])
