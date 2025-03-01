@@ -3,6 +3,7 @@ import csv
 company_writer = csv.writer(open('nodes/company.csv','w',newline=''))
 award_writer = csv.writer(open('nodes/award.csv','w',newline=''))
 agency_writer = csv.writer(open('nodes/agency.csv','w',newline=''))
+program_writer = csv.writer(open('nodes/program.csv','w',newline=''))
 PI_writer = csv.writer(open('nodes/PI.csv','w',newline=''))
 POC_writer = csv.writer(open('nodes/POC.csv','w',newline=''))
 research_institution_writer = csv.writer(open('nodes/research_institution.csv','w',newline=''))
@@ -51,6 +52,21 @@ def add_agency(row):
         num_agencies += 1
         return num_agencies - 1
     return added_agencies.index(agency_name + branch)
+
+added_programs = []
+num_programs = 0
+def add_program(row):
+    global num_programs
+    global added_programs
+    program = row[6]
+    phase = row[5]
+    if program + phase not in added_programs:
+        newRow = [num_programs, program, phase]
+        program_writer.writerow(newRow)
+        added_programs.append(program + phase)
+        num_programs += 1
+        return num_programs - 1
+    return added_programs.index(program + phase
 
 added_POCs = []
 num_POC = 0
