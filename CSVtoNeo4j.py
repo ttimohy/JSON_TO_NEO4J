@@ -1,252 +1,142 @@
 import csv
-import neo4j 
-from neo4j import GraphDatabase
 
-uri = "bolt://localhost:7687"
-database = "neo4j"
+company_writer = csv.writer(open('nodes/company.csv','w',newline=''))
+award_writer = csv.writer(open('nodes/award.csv','w',newline=''))
+agency_writer = csv.writer(open('nodes/agency.csv','w',newline=''))
+PI_writer = csv.writer(open('nodes/PI.csv','w',newline=''))
+POC_writer = csv.writer(open('nodes/POC.csv','w',newline=''))
+research_institution_writer = csv.writer(open('nodes/research_institution.csv','w',newline=''))
+RI_contact_writer = csv.writer(open('nodes/RI_contact.csv','w',newline=''))
 
-user = "neo4j" #default username, you can find your info in the neo4j browser by typing :  `show current user`
-password = "pass" #change this accroding to your info
+contact_for_writer = csv.writer(open('relationships/contact_for.csv','w',newline=''))
+contact_for_RI_writer = csv.writer(open('relationships/contact_for_RI.csv','w',newline=''))
+funded_writer = csv.writer(open('relationships/funded.csv','w',newline=''))
+leads_writer = csv.writer(open('relationships/leads.csv','w',newline=''))
+recieved_award_writer = csv.writer(open('relationships/recieved_award.csv','w',newline=''))
+research_institution_for_writer = csv.writer(open('relationships/research_institution_for.csv','w',newline=''))
 
+added_companies = []
+num_companies = 0
+def add_company(row):
+    global num_companies
+    global added_companies
+    company_name = row[1]
+    if company_name not in added_companies:
+        newRow = [num_companies, company_name, *row[13:24]]
+        company_writer.writerow(newRow)
+        added_companies.append(company_name)
+        num_companies += 1
+        return num_companies - 1
+    return added_companies.index(company_name)
 
-driver = GraphDatabase.driver(uri, auth=(user, password))
+num_awards = 0
+def add_award(row):
+    global num_awards
+    newRow = [num_awards, row[2], *row[5:13], row[24]]
+    award_writer.writerow(newRow)
+    num_awards += 1
+    return num_awards - 1
 
-'''
+added_agencies = []
+num_agencies = 0
+def add_agency(row):
+    global num_agencies
+    global added_agencies
+    agency_name = row[3]
+    branch = row[4]
+    if agency_name + branch not in added_agencies:
+        newRow = [num_agencies, agency_name, branch]
+        agency_writer.writerow(newRow)
+        added_agencies.append(agency_name + branch)
+        num_agencies += 1
+        return num_agencies - 1
+    return added_agencies.index(agency_name + branch)
 
-=======================================================================================================
-Hello! This is the node creation script. It is used to create nodes and relationships in the database.
+added_POCs = []
+num_POC = 0
+def add_POC(row):
+    global num_POC
+    global added_POCs
+    POC_name = row[25]
+    POC_number = row[27]
+    if POC_name+POC_number not in added_POCs:
+        newRow = [num_POC, POC_name, *row[26:29]]
+        POC_writer.writerow(newRow)
+        added_POCs.append(POC_name+POC_number)
+        num_POC += 1
+        return num_POC - 1
+    return added_POCs.index(POC_name+POC_number)
 
-To run this script you will need all of the .csv files that you generated using your data extraction python notebook.
+added_PIs = []
+num_PI = 0
+def add_PI(row):
+    global num_PI
+    global added_PIs
+    PI_name = row[29]
+    PI_phone = row[31]
+    if PI_name+PI_phone not in added_PIs:
+        newRow = [num_PI, PI_name, *row[30:33]]
+        PI_writer.writerow(newRow)
+        added_PIs.append(PI_name+PI_phone)
+        num_PI += 1
+        return num_PI - 1
+    return added_PIs.index(PI_name+PI_phone)
 
-To run this script, you will need to uncomment the function calls at the bottom of the script.
+added_RIs = []
+num_RI = 0
+def add_RI(row):
+    global num_RI
+    global added_RIs
+    RI_name = row[33]
+    if RI_name == '':
+        return -1
+    if RI_name not in added_RIs:
+        newRow = [num_RI, RI_name]
+        research_institution_writer.writerow(newRow)
+        added_RIs.append(RI_name)
+        num_RI += 1
+        return num_RI - 1
+    return added_RIs.index(RI_name)
 
-This script will merge the data from the .csv files into the database.
+added_RI_contacts = []
+num_RI_contact = 0
+def add_RI_contact(row):
+    global num_RI_contact
+    global added_RI_contacts
+    RI_contact_name = row[34]
+    RI_contact_phone = row[35]
+    if RI_contact_name == '':
+        return -1
+    if RI_contact_name+RI_contact_phone not in added_RI_contacts:
+        newRow = [num_RI_contact, RI_contact_name, RI_contact_phone]
+        RI_contact_writer.writerow(newRow)
+        added_RI_contacts.append(RI_contact_name+RI_contact_phone)
+        num_RI_contact += 1
+        return num_RI_contact - 1
+    return added_RI_contacts.index(RI_contact_name+RI_contact_phone)
 
-If you have any questions, please reach out to me on Teams.
-
-Thanks!😊
-=======================================================================================================
-
-'''
-
-
-def create_company_node(tx):
-    tx.run('''
-           LOAD CSV WITH HEADERS FROM 'file:///company.csv' AS row
-              CREATE (c:Company {
-               id: toInteger(row.id),
-               name: row.Company,
-               Dun_Bradstreet_num: row.Dun_Bradstreet_num,
-               HUBZone_Owned: row.`HUBZone Owned`,
-               Socially_and_Economically_Disadvantaged: row.`Socially and Economically Disadvantaged`,
-               Women_Owned: row.`Women Owned`,
-               Number_Employees: toInteger(row.`Number Employees`),
-               Company_Website: row.`Company Website`,
-               Address1: row.Address1,
-               Address2: row.Address2,
-               City: row.City,
-               State: row.State,
-               Zip_Code: row.`Zip Code`,
-               Contact_Name: row.`Contact Name`,
-               Contact_Title: row.`Contact Title`,
-               Contact_Phone: row.`Contact Phone`,
-               Contact_Email: row.`Contact Email`
-           })
-           ''')
-    
-def create_project_node(tx):
-    tx.run('''
-            LOAD CSV WITH HEADERS FROM 'file:///project.csv' AS row
-            CREATE (p:Project {
-                id: toInteger(row.id),
-                Award_Title: row.`Award Title`,
-                Abstract: row.Abstract,
-                PI_Name: row.`PI Name`,
-                PI_Title: row.`PI Title`,
-                PI_Phone: row.`PI Phone`,
-                PI_Email: row.`PI Email`
-            })
-            ''')
-
-def create_award_node(tx):
-    tx.run('''
-        LOAD CSV WITH HEADERS FROM 'file:///award.csv' AS row
-        CREATE (a:Award {
-            Award_Title: row.`Award Title`,
-            Phase: row.Phase,
-            Proposal_Award_Date: row.`Proposal Award Date`,
-            Solicitation_Number: row.`Solicitation Number`,
-            Solicitation_Year: row.`Solicitation Year`,
-            Solicitation_Close_Date: row.`Solicitation Close_Date`,
-            Award_Year: row.`Award Year`,
-            Award_Amount: toInteger(row.`Award Amount`),
-            id: toInteger(row.id)
-           })
-            ''')
-
-def create_scheme_node(tx):
-    tx.run('''
-        LOAD CSV WITH HEADERS FROM 'file:///scheme.csv' AS row
-        CREATE (s:Scheme {
-            id: toInteger(row.id),
-            Program: row.Program
-        })
-        ''')
-    
-def create_agency_node(tx):
-    tx.run('''
-        LOAD CSV WITH HEADERS FROM 'file:///agency.csv' AS row
-        CREATE (a:Agency {
-            id: toInteger(row.id),
-            Agency: row.Agency,
-            Branch: row.Branch
-        })
-        ''')
-    
-def create_research_institution_node(tx):
-    tx.run('''
-        LOAD CSV WITH HEADERS FROM 'file:///reasearch_institution.csv' AS row
-        CREATE (ri:ResearchInstitution {
-            id: toInteger(row.id),
-            RI_Name: row.`RI Name`,
-            RI_POC_Name: row.`RI POC Name`,
-            RI_POC_Phone: row.`RI POC Phone`
-        })
-        ''')
-
-
-
-
-    
-def create_awarded_by_relationship(tx):
-    tx.run('''
-        LOAD CSV WITH HEADERS FROM 'file:///awarded_by.csv' AS row
-        MATCH (a:Award {id: toInteger(row.Award_ID)}), (s:Scheme {id: toInteger(row.Program_ID)})
-        MERGE (a)-[:AWARDED_BY]->(s)
-        ''')
-
-def create_awards_relationship(tx):
-    tx.run('''
-        LOAD CSV WITH HEADERS FROM 'file:///awards.csv' AS row
-        MATCH (s:Scheme {id: toInteger(row.Program_ID)}), (a:Award {id: toInteger(row.Award_ID)})
-        MERGE (s)-[:AWARDS]->(a)
-        ''')
-
-def create_beneficiary_of_relationship(tx):
-    tx.run('''
-        LOAD CSV WITH HEADERS FROM 'file:///beneficiary_of.csv' AS row
-        MATCH (c:Company {id: toInteger(row.Company_ID)}), (a:Award {id: toInteger(row.Award_ID)})
-        MERGE (c)-[:BENEFICIARY_OF]->(a)
-        ''')
-
-def create_finances_relationship(tx):
-    tx.run('''
-        LOAD CSV WITH HEADERS FROM 'file:///finances.csv' AS row
-        MATCH (a:Award {id: toInteger(row.Award_ID)}), (p:Project {id: toInteger(row.Project_ID)})
-        MERGE (a)-[:FINANCES]->(p)
-        ''')
-
-def create_funded_by_relationship(tx):
-    tx.run('''
-        LOAD CSV WITH HEADERS FROM 'file:///funded_by.csv' AS row
-        MATCH (a:Agency {id: toInteger(row.Agency_ID)}), (aw:Award {id: toInteger(row.Award_ID)})
-        MERGE (aw)-[:FUNDED_BY]->(a)
-        ''')
-
-def create_funds_relationship(tx):
-    tx.run('''
-        LOAD CSV WITH HEADERS FROM 'file:///funds.csv' AS row
-        MATCH (a:Agency {id: toInteger(row.Agency_ID)}), (aw:Award {id: toInteger(row.Award_ID)})
-        MERGE (a)-[:FUNDS]->(aw)
-        ''')
-
-def create_has_beneficiary_relationship(tx):
-    tx.run('''
-        LOAD CSV WITH HEADERS FROM 'file:///has_beneficiary.csv' AS row
-        MATCH (a:Award {id: toInteger(row.Award_ID)}), (c:Company {id: toInteger(row.Company_ID)})
-        MERGE (a)-[:HAS_BENEFICIARY]->(c)
-        ''')
-
-def create_has_participant_relationship(tx):
-    tx.run('''
-        LOAD CSV WITH HEADERS FROM 'file:///has_participant.csv' AS row
-        MATCH (p:Project {id: toInteger(row.Project_ID)}), (c:Company {id: toInteger(row.Company_ID)})
-        MERGE (p)-[:HAS_PARTICIPANT]->(c)
-        ''')
-
-def create_has_participant2_relationship(tx):
-    tx.run('''
-        LOAD CSV WITH HEADERS FROM 'file:///has_participant2.csv' AS row
-        MATCH (p:Project {id: toInteger(row.Project_ID)}), (ri:ResearchInstitution {id: toInteger(row.RI_ID)})
-        MERGE (p)-[:HAS_PARTICIPANT]->(ri)
-        ''')
-
-def create_implemented_by_relationship(tx):
-    tx.run('''
-        LOAD CSV WITH HEADERS FROM 'file:///implemented_by.csv' AS row
-        MATCH (a:Agency {id: toInteger(row.Agency_ID)}), (s:Scheme {id: toInteger(row.Program_ID)})
-        MERGE (s)-[:IMPLEMENTED_BY]->(a)
-        ''')
-
-def create_implements_relationship(tx):
-    tx.run('''
-        LOAD CSV WITH HEADERS FROM 'file:///implements.csv' AS row
-        MATCH (ri:ResearchInstitution {id: toInteger(row.RI_ID)}), (c:Company {id: toInteger(row.Company_ID)})
-        MERGE (ri)-[:IMPLEMENTS]->(c)
-        ''')
-
-def create_participated_in_relationship(tx):
-    tx.run('''
-        LOAD CSV WITH HEADERS FROM 'file:///participated_in.csv' AS row
-        MATCH (c:Company {id: toInteger(row.Company_ID)}), (p:Project {id: toInteger(row.Project_ID)})
-        MERGE (c)-[:PARTICIPATED_IN]->(p)
-        ''')
-
-def create_participated_in2_relationship(tx):
-    tx.run('''
-        LOAD CSV WITH HEADERS FROM 'file:///participated_in2.csv' AS row
-        MATCH (ri:ResearchInstitution {id: toInteger(row.RI_ID)}), (p:Project {id: toInteger(row.Project_ID)})
-        MERGE (ri)-[:PARTICIPATED_IN]->(p)
-        ''')
-
-def create_recipient_of_relationship(tx):
-    tx.run('''
-        LOAD CSV WITH HEADERS FROM 'file:///recipient_of.csv' AS row
-        MATCH (p:Project {id: toInteger(row.Project_ID)}), (a:Award {id: toInteger(row.Award_ID)})
-        MERGE (p)-[:RECIPIENT_OF]->(a)
-        ''')
-
-def create_partners_with_relationship(tx):
-    tx.run('''
-        LOAD CSV WITH HEADERS FROM 'file:///partners_with.csv' AS row
-        MATCH (ri:ResearchInstitution {id: toInteger(row.RI_ID)}), (c:Company {id: toInteger(row.Company_ID)})
-        MERGE (ri)<-[:PARTNERS_WITH]->(c)
-        ''')
-    
-with driver.session(database=database) as session:
-    # session.write_transaction(create_company_node)
-    # session.write_transaction(create_project_node)
-    # session.write_transaction(create_award_node)
-    # session.write_transaction(create_scheme_node)
-    # session.write_transaction(create_agency_node)
-    # session.write_transaction(create_research_institution_node)
+def addRelationships(companyID, awardID, agencyID, pocID, piID, riID, ripocID):
+    funded_writer.writerow([agencyID, awardID])
+    leads_writer.writerow([piID, awardID])
+    recieved_award_writer.writerow([companyID, awardID])
+    contact_for_writer.writerow([pocID, companyID])
+    if riID != -1:
+        research_institution_for_writer.writerow([riID, companyID])
+    if ripocID != -1:
+        contact_for_RI_writer.writerow([ripocID, riID])
 
 
-    # session.write_transaction(create_awarded_by_relationship)
-    # session.write_transaction(create_awards_relationship)
-    # session.write_transaction(create_beneficiary_of_relationship)
-    # session.write_transaction(create_finances_relationship)
-    # session.write_transaction(create_funded_by_relationship)
-    # session.write_transaction(create_funds_relationship)
-    # session.write_transaction(create_has_beneficiary_relationship)
-    # session.write_transaction(create_has_participant_relationship)
-    # session.write_transaction(create_has_participant2_relationship)
-    # session.write_transaction(create_implemented_by_relationship)
-    # session.write_transaction(create_implements_relationship)
-    # session.write_transaction(create_participated_in_relationship)
-    # session.write_transaction(create_participated_in2_relationship)
-    # session.write_transaction(create_recipient_of_relationship)
-    # session.write_transaction(create_partners_with_relationship)
-    print("Done!")
+if __name__ == "__main__":
+    reader = csv.reader(open('data/SBIR_awards_cleaned.csv', 'r'))
+    header = reader.__next__()
+    for i in range(100):
+        row = reader.__next__()
+        companyID = add_company(row)
+        awardID = add_award(row)
+        agencyID = add_agency(row)
+        pocID = add_POC(row)
+        piID = add_PI(row)
+        riID = add_RI(row)
+        ripocID = add_RI_contact(row)
+        addRelationships(companyID, awardID, agencyID, pocID, piID, riID, ripocID)
 
-driver.close()
