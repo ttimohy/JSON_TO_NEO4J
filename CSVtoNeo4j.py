@@ -66,7 +66,7 @@ def add_program(row):
         added_programs.append(program + phase)
         num_programs += 1
         return num_programs - 1
-    return added_programs.index(program + phase
+    return added_programs.index(program + phase)
 
 added_POCs = []
 num_POC = 0
