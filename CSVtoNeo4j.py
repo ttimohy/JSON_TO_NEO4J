@@ -8,12 +8,18 @@ PI_writer = csv.writer(open('nodes/PI.csv','w',newline=''))
 POC_writer = csv.writer(open('nodes/POC.csv','w',newline=''))
 project_writer = csv.writer(open('nodes/project.csv','w',newline=''))
 
-contact_for_writer = csv.writer(open('relationships/contact_for.csv','w',newline=''))
-contact_for_RI_writer = csv.writer(open('relationships/contact_for_RI.csv','w',newline=''))
-funded_writer = csv.writer(open('relationships/funded.csv','w',newline=''))
-leads_writer = csv.writer(open('relationships/leads.csv','w',newline=''))
-recieved_award_writer = csv.writer(open('relationships/recieved_award.csv','w',newline=''))
-research_institution_for_writer = csv.writer(open('relationships/research_institution_for.csv','w',newline=''))
+applies_to_writer = csv.writer(open('relationships/applies_to.csv','w',newline=''))
+partners_with_writer = csv.writer(open('relationships/partners_with.csv','w',newline=''))
+funds_writer = csv.writer(open('relationships/funds.csv', 'w', newline=''))
+offers_writer = csv.writer(open('relationships/offers.csv', 'w', newline=''))
+administered_by_writer = csv.writer(open('relationships/administered_by.csv', 'w', newline=''))
+generates_writer = csv.writer(open('relationships/generates.csv', 'w', newline=''))
+funded_by_writer = csv.writer(open('relationships/funded_by.csv', 'w', newline=''))
+has_writer = csv.writer(open('relationships/has.csv', 'w', newline=''))
+hosts_writer = csv.writer(open('relationships/hosts.csv', 'w', newline=''))
+leads_writer = csv.writer(open('relationships/leads.csv', 'w', newline=''))
+employed_by_writer = csv.writer(open('relationships/employed_by.csv', 'w', newline=''))
+represents_writer = csv.writer(open('relationships/represents.csv', 'w', newline=''))
 
 added_companies = []
 num_companies = 0
@@ -143,16 +149,29 @@ def add_project(row):
         return num_project - 1
     return addded_projects.index(award_title)
 
-def addRelationships(companyID, awardID, agencyID, pocID, piID, riID, ripocID):
-    funded_writer.writerow([agencyID, awardID])
-    leads_writer.writerow([piID, awardID])
-    recieved_award_writer.writerow([companyID, awardID])
-    contact_for_writer.writerow([pocID, companyID])
+def addRelationships(companyID, awardID, agencyID, programID, pocID, piID, riID, projectID):
+    applies_to_writer.writerow([companyID, agencyID])
     if riID != -1:
-        research_institution_for_writer.writerow([riID, companyID])
-    if ripocID != -1:
-        contact_for_RI_writer.writerow([ripocID, riID])
-
+        partners_with_writer.writerow([companyID, riID])
+        conducts_writer.writerow([riID, projectID])
+    granted_to_writer.writerow([awardID, companyID])
+    funds_writer.writerow([awardID, projectID])
+    offers_writer.writerow([agencyID, programID])
+    administered_by_writer.writerow([programID, agencyID])
+    generates_writer.writerow([programID, awardID])
+    funded_by_writer.writerow([projectID, awardID])
+    if projectID != -1:
+        if piID != -1:
+            has_writer.writerow([projectID, piID])
+        if pocID != -1:
+            has_writer.writerow([projectID, pocID])
+        hosts_writer.writerow([projectID, companyID])
+    if piID != -1:
+        if projectID != -1:
+            leads_writer.writerow([piID, projectID])
+        employed_by_writer.writerow([piID, companyID])
+    if pocID != -1:
+        represents_writer.writerow([pocID, companyID])
 
 if __name__ == "__main__":
     reader = csv.reader(open('data/SBIR_awards_cleaned.csv', 'r'))
