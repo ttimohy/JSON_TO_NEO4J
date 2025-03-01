@@ -52,6 +52,17 @@ def add_agency(row):
         return num_agencies - 1
     return added_agencies.index(agency_name + branch)
 
+added_programs = []
+num_programs = 0
+def add_program(row):
+    global num_programs
+    global added_programs
+    program = row[6]
+    phase = row[5]
+    newRow = [num_programs, phase, program]
+    num_programs += 1
+    return num_programs - 1
+
 added_POCs = []
 num_POC = 0
 def add_POC(row):
